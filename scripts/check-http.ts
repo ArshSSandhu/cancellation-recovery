@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+const base=process.env.TEST_BASE_URL??'http://127.0.0.1:3000';
+const post=(path:string,body:object,cookie='',origin=base)=>fetch(base+path,{method:'POST',headers:{'Content-Type':'application/json',Origin:origin,Cookie:cookie},body:JSON.stringify(body)});
+assert.equal((await fetch(base+'/api/state')).status,401);
+assert.equal((await post('/api/demo',{identityId:'maya'},'','https://example.com')).status,403);
+assert.equal((await post('/api/demo',{identityId:'unknown'})).status,400);
+const login=await post('/api/demo',{identityId:'maya'});assert.equal(login.status,200);
+const cookie=login.headers.get('set-cookie')!;assert.match(cookie,/HttpOnly/i);assert.match(cookie,/SameSite=strict/i);
+const auth=cookie.split(';')[0];
+const state=await (await fetch(base+'/api/state',{headers:{Cookie:auth}})).json();
+assert.equal(state.actor.id,'maya');assert.ok(state.appointments.every((a:{patient_name:string})=>a.patient_name==='Maya Chen'));assert.equal(state.audit.length,0);
+const forbidden=await post('/api/action',{kind:'send',id:'opening',waitlistId:'wait-maya',actorId:'staff',role:'staff'},auth);assert.equal(forbidden.status,403);
+assert.equal((await fetch(base+'/api/state',{headers:{Cookie:'recovery_session=forged'}})).status,401);
+assert.equal((await post('/api/action',{kind:'accept',id:'00000000-0000-0000-0000-000000000000'},auth)).status,404);
+assert.equal((await post('/api/action',{kind:'accept',id:'------------------------------------'},auth)).status,400);
+assert.equal((await post('/api/action',null as unknown as object,auth)).status,400);
+for(const path of ['/__fixture/prepare','/__fault/status','/__fault/release'])assert.equal((await fetch(base+path)).status,404);
+console.log('HTTP checks passed: unauthenticated, forged session, cross-origin, unknown identity, cookie flags, patient visibility, forged role, and unknown offer.');

@@ -1,0 +1,46 @@
+# Dependencies and generated application output
+node_modules/
+.next/
+out/
+dist/
+build/
+next-env.d.ts
+*.tsbuildinfo
+
+# Persistent local Postgres, package store, sessions and generated test evidence
+.local/
+/evidence/
+coverage/
+test-results/
+playwright-report/
+*.log
+
+# Environment / provider credentials; the public fictional example is intentional
+.env*
+!.env.example
+.vercel/
+.netrc
+.npmrc
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+service-account*.json
+
+# Database exports and local backup/session material
+backups/
+pgdata/
+postgres-data/
+*.dump
+*.backup
+*.sql.gz
+*.dump.gz
+sessions*.json
+sessions*.csv
+
+# Local editor/OS and scratch artifacts
+.DS_Store
+.idea/
+/tmp/
+/output/
