@@ -34,3 +34,11 @@ sessions*.csv
 .idea/
 tmp/
 output/
+.agents/
+.codex/
+.claude/
+.cursor/
+skills-lock.json
+.neon
+.neon/
+.mcp.json

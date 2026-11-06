@@ -8,7 +8,7 @@ import {resolve} from 'node:path';
 const git=(...args:string[])=>execFileSync('git',args,{encoding:'utf8'});
 assert.equal(resolve(git('rev-parse','--show-toplevel').trim()),resolve('.'),'Run from the project repository root.');
 const files=[...new Set(git('ls-files','--cached','--others','--exclude-standard','-z').split('\0').filter(Boolean))].sort();
-const rootFiles=new Set(['.env.example','.gitattributes','.gitignore','.nvmrc','.vercelignore','package.json','pnpm-lock.yaml','pnpm-workspace.yaml','tsconfig.json','run.sh','README.md','DECISIONS.md','DEPLOYMENT.md','REVIEW.md','CLARITY.md','SAFEGUARDS.md','VERIFICATION.md','SHARING.md']);
+const rootFiles=new Set(['.env.example','.gitattributes','.gitignore','.nvmrc','.vercelignore','neon.ts','package.json','pnpm-lock.yaml','pnpm-workspace.yaml','tsconfig.json','run.sh','README.md','DECISIONS.md','DEPLOYMENT.md','REVIEW.md','CLARITY.md','SAFEGUARDS.md','VERIFICATION.md','SHARING.md']);
 const required=['.env.example','README.md','DEPLOYMENT.md','SHARING.md','package.json','pnpm-lock.yaml','pnpm-workspace.yaml','run.sh','db/001_initial.sql','scripts/seed.ts','scripts/setup.ts','scripts/test.ts','lib/db.ts','lib/scheduling.ts','lib/auth.ts','app/page.tsx','app/ui.tsx','tests/booking.test.ts','tests/ui.test.tsx','tests/transport-harness.ts'];
 for(const path of required)assert.ok(files.includes(path),`Required project file missing or ignored: ${path}`);
 for(const path of files) {

@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": "24.x"
+  },
   "packageManager": "pnpm@11.25.0",
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1",
@@ -16,9 +18,14 @@
     "typecheck": "tsc --noEmit",
     "check:share": "node --import tsx scripts/check-share.ts",
     "test:http": "tsx scripts/check-http.ts",
-    "test:transport": "tsx tests/transport-harness.ts"
+    "test:transport": "tsx tests/transport-harness.ts",
+    "db:hosted:setup": "tsx scripts/hosted-setup.ts",
+    "test:neon": "tsx tests/neon-smoke.ts"
   },
   "dependencies": {
+    "@neon/config": "1.11.3",
+    "@neon/env": "1.6.15",
+    "@vercel/functions": "3.11.0",
     "next": "16.4.5",
     "pg": "8.23.1",
     "react": "19.3.1",

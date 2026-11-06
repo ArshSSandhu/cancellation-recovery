@@ -5,3 +5,7 @@ allowBuilds:
   '@embedded-postgres/linux-x64': true
   esbuild: true
   sharp: true
+minimumReleaseAgeExclude:
+  - '@vercel/cli-config@0.3.7'
+  - '@vercel/functions@3.11.0'
+  - '@vercel/oidc@4.0.7'

@@ -1,6 +1,7 @@
 import {test,beforeEach,after,type TestContext} from 'node:test';
 import assert from 'node:assert/strict';
 import pg from 'pg';
+import {readFileSync} from 'node:fs';
 import {testEnvironment} from '../scripts/local-safety';
 const testEnv=testEnvironment();
 const appUrl=new URL(testEnv.DATABASE_URL);appUrl.searchParams.set('application_name','recovery-race-tests');
@@ -275,4 +276,18 @@ test('runtime audit privileges deny truncate and trigger removal as well as upda
   await assert.rejects(admin.query("UPDATE audit SET action='changed'"),/append-only/);
   await assert.rejects(admin.query('DELETE FROM audit'),/append-only/);
   assert.equal((await pool.query('SELECT count(*)::int AS n FROM audit')).rows[0].n,count);
+});
+
+
+test('restricted hosted table grants permit the complete move and deny slot editing and audit deletion',async()=>{
+  await admin.query(readFileSync(new URL('../db/runtime_role_grants.sql',import.meta.url),'utf8'));
+  try{
+    const o=await offer();const result=await execute('maya',{kind:'accept',id:o.offerId!});
+    assert.equal(result.appointment.slot_id,'opening');await assertMove(o.offerId!,true);
+    await assert.rejects(pool.query("UPDATE slots SET location='changed' WHERE id='opening'"),/permission denied/);
+    await assert.rejects(pool.query('DELETE FROM audit'),/permission denied/);
+    await assert.rejects(pool.query("UPDATE identities SET role='staff' WHERE id='maya'"),/permission denied/);
+  }finally{
+    await admin.query('GRANT SELECT,INSERT,UPDATE,DELETE ON identities,sessions,clinicians,slots,appointments,waitlist,offers TO recovery_app');
+  }
 });

@@ -2,9 +2,8 @@ import { randomUUID } from 'node:crypto';
 import type { PoolClient } from 'pg';
 import { transaction } from './db';
 
-export class WorkflowError extends Error {
-  constructor(message: string, public status = 409) { super(message); }
-}
+import {WorkflowError} from './errors';
+export {WorkflowError} from './errors';
 const requireThat: (condition: unknown, message: string, status?: number) => asserts condition = (condition, message, status) => {
   if (!condition) throw new WorkflowError(message, status);
 };

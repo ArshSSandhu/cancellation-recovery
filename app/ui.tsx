@@ -166,11 +166,11 @@ export default function Dashboard(){
   const staff=state?.actor.role==='staff';
   return <>
     <a className="skip-link" href="#main">Skip to appointments</a>
-    <div className="demo-strip">FICTIONAL DATA ONLY <span>Local prototype · no real messages are sent</span></div>
+    <div className="demo-strip">FICTIONAL DATA ONLY <span>Fictional demo · no real messages are sent</span></div>
     <header><a href="/" className="brand"><span className="brand-icon">↗</span> earlier<span className="brand-sub">Clinic scheduling</span></a><div className="identity"><label htmlFor="identity">Demo identity</label><select id="identity" value={identity} onChange={e=>setIdentity(e.target.value)}>{identities.map(([id,name])=><option value={id} key={id}>{name}</option>)}</select><button className="secondary" disabled={busy} onClick={()=>void login()}>Sign in / switch</button></div></header>
     <main id="main" tabIndex={-1}>
       <div className="page-heading"><div><p className="eyebrow">Cancellation recovery</p><h1>{!state?'A little sooner.':staff?'Make room for an earlier visit.':`Your next visit, ${state.actor.name.split(' ')[0]}.`}</h1><p className="lede">{!state?'Sign in with a fictional identity to explore the clinic and patient experiences.':staff?'Review openings, match waiting patients, and follow every booking change.':uncertain?'Booking status is unconfirmed. Refresh records before relying on these times.':'Your confirmed appointments and earlier-visit offers are listed below.'}</p></div>{state&&<button className="secondary" disabled={busy} onClick={()=>void refresh()}>Refresh records</button>}</div>
-      <div className="context"><span>{state?<>Signed in as <strong>{state.actor.name}</strong> · {state.actor.role}</>:'Demo sign-in · no password needed'}</span><span>All times: Indianapolis · Eastern Time (EST/EDT)</span></div>
+      <div className="context"><span>{state?<>Signed in as <strong>{state.actor.name}</strong> · {state.actor.role}</>:'Demo identities · passwordless impersonation'}</span><span>All times: Indianapolis · Eastern Time (EST/EDT)</span></div>
       <div ref={noticeRef} tabIndex={-1} className="update-focus"><Announcements notice={notice} busy={busy}/></div>
       {loading?<p>Loading records…</p>:!state?<section className="card welcome"><h2>Two views. One reliable booking.</h2><p>Sign in as fictional staff to review the schedule, or as a patient to check your appointment and inbox.</p><p>The simulated inbox and scheduling records use fictional data only.</p></section>:<>
         {staff?<>

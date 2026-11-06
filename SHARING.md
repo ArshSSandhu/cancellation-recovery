@@ -1,4 +1,6 @@
-# Sharing preparation
+# Historical sharing preparation
+
+This records the earlier local-only preparation. The repository has since been published and hosted configuration has been implemented. Use README.md and DEPLOYMENT.md for the current state; the future-tense checklist below is historical.
 
 Prepared November 5, 2026. This document describes local preparation and the remaining steps; it is not a deployment record. This project contains fictional data only.
 

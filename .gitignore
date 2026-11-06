@@ -44,3 +44,13 @@ sessions*.csv
 .idea/
 /tmp/
 /output/
+
+# Locally installed agent tooling (not application source)
+.agents/
+.codex/
+.claude/
+.cursor/
+skills-lock.json
+.neon
+.neon/
+.mcp.json

@@ -10,18 +10,18 @@ A fictional psychiatric clinic demo: when a patient cancels, staff can offer the
 4. Switch to **Maya Chen · Patient**. Compare the earlier visit with the still-booked original, then accept or keep the existing appointment (decline).
 5. Refresh both views to see the move. Staff can inspect retained appointment history and audit entries, or withdraw a pending offer with a reason.
 
-The **demo identity switcher is passwordless impersonation, not real authentication**. Anyone with local access can choose staff or any fictional patient. Server sessions still enforce staff permissions and patient ownership for each request. Tabs share the identity cookie; use separate browser profiles for independent identities. Vercel API access is deliberately disabled until hosted access is designed.
+The **demo identity switcher is passwordless impersonation, not real authentication**. Anyone granted access to an instance can choose staff or any fictional patient. Server sessions still enforce staff permissions and patient ownership for each request. Tabs share the identity cookie; use separate browser profiles for independent identities. The hosted fictional demo requires Vercel Authentication on **All Deployments**, currently restricted to its owner. This outer reviewer gate is separate from the fictional identities.
 
 ## Architecture and booking correctness
 
-Next.js 16.4.5 / React 19, TypeScript, Node.js, `pg`, and real PostgreSQL 17. Stored state plus an append-only audit trail; no event sourcing or background queue.
+Next.js 16.4.5 / React 19, TypeScript, Node.js, `pg`, and real PostgreSQL (17 locally; the selected Neon project runs 18). Stored state plus an append-only audit trail; no event sourcing or background queue.
 
 - [`lib/scheduling.ts`](lib/scheduling.ts): matching, commands, deadlines and atomic acceptance. One transaction checks ownership, current source version, eligibility and availability, inserts the replacement, marks the original replaced, records the result on the offer, completes the waitlist entry and writes the move audit. Failure rolls everything back; retry returns the recorded result.
 - [`db/001_initial.sql`](db/001_initial.sql): one booked appointment per slot, no overlapping clinician slots or patient bookings, exclusive pending offers, time/FK/status checks and audit trigger.
 - [`lib/db.ts`](lib/db.ts): checked-out connection, transaction-scoped shared scheduling lock, five-second lock timeout and ten-second statement timeout. Refreshes also take this lock because they expire offers. This serializes unrelated patients/clinicians; acceptable for a small demo, not demonstrated at scale.
-- [`lib/auth.ts`](lib/auth.ts), [`app/api`](app/api): opaque server sessions, role/ownership checks, local origin enforcement. Runtime uses restricted `recovery_app`; migrations/reset use an administrator.
+- [`lib/auth.ts`](lib/auth.ts), [`app/api`](app/api): opaque server sessions, role/ownership checks, exact origin enforcement and Secure host-only cookies on hosting. Runtime uses restricted `recovery_app`; migrations/reset use an administrator.
 
-See [REVIEW.md](REVIEW.md) for the code review and clean production-build verification, [SHARING.md](SHARING.md) for GitHub preparation and independent reviewer trials, and [DEPLOYMENT.md](DEPLOYMENT.md) for the proposed hosted plan.
+See [REVIEW.md](REVIEW.md) for the code review and clean production-build verification, [SHARING.md](SHARING.md) for GitHub preparation and independent reviewer trials, and [DEPLOYMENT.md](DEPLOYMENT.md) for hosted setup, access protection and release checks.
 
 ## Repository and local setup
 
@@ -81,8 +81,16 @@ git add --dry-run .
 
 Source, lockfile, migrations, fictional seed code, tests and setup notes are included. Actual environments, local databases/sessions, dependencies, build output, provider settings and captured test evidence are ignored. Do not force-add them. Historical reports refer to locally retained screenshots/logs that are not part of the repository. The sharing check is a focused file/credential guard, not a comprehensive secret scanner.
 
+## Hosted fictional demo
+
+The owner-only reviewer instance is [cancellation-recovery.vercel.app](https://cancellation-recovery.vercel.app/). Sign in to Vercel using the owner account, then use the fictional identity selector. Anyone admitted to this instance can impersonate all its fictional identities and change its records. Do not distribute bypass/share links or admit independent reviewers to this same dataset.
+
+Hosting uses the personal Vercel Hobby project and Neon Free project, pooled verified-TLS `recovery_app` credentials for the separate `recovery_demo` database, and the production environment settings documented in [DEPLOYMENT.md](DEPLOYMENT.md). The original local database remains independent. No owner credentials, reset command, migration or fault harness runs in the deployed application. Previews receive no production credentials and are not configured for demo use.
+
+`neon.ts` declares Postgres only; Neon Auth and other services are disabled. `lib/hosting.ts` validates the hosted mode, exact canonical HTTPS origin, secure session configuration and restricted pooled connection. `db/runtime_role_grants.sql` gives the hosted role narrower grants than the local developer role, including append/read-only audit access. `scripts/hosted-setup.ts` is an explicit workstation-only initialization of an empty named hosted database; rerunning it does not reset fixtures. Provider commands can pull owner credentials into local env files: follow the separation instructions before using them.
+
 ## Destructive commands and limitations
 
 **`RESET_FICTIONAL_DATA=1 ./run.sh db:seed` erases all fictional demo appointments, offers, sessions and audit entries and recreates relative-date fixtures.** Run it only when intentionally starting over. Without the flag it refuses to reset `recovery`. Setup/seed/test tools refuse hosted databases and Vercel. Never add reset to an application build, start command, or HTTP endpoint. Deleting `.local/postgres` also destroys saved databases; it is not a troubleshooting step.
 
-This is a local prototype for fictional data. Notifications are an inbox only; expiry is enforced at acceptance and materialized during later scheduling operations. Refreshes are serialized; audit UI shows the newest 100 entries. No real authentication, row-level database security, multi-clinic isolation, operational monitoring, backup/recovery validation, load testing or suitability for real patient information is claimed. Database owners can still alter audit storage; the runtime role cannot edit/delete/truncate audit entries, but is trusted to append truthful events. New scheduling writers must follow the shared-lock and source-version contract.
+This is a prototype for fictional data, available locally and as a protected hosted demo. Notifications are an inbox only; expiry is enforced at acceptance and materialized during later scheduling operations. Refreshes are serialized; audit UI shows the newest 100 entries. No real authentication, row-level database security, multi-clinic isolation, operational monitoring, backup/recovery validation, load testing or suitability for real patient information is claimed. Database owners can still alter audit storage; the runtime role cannot edit/delete/truncate audit entries, but is trusted to append truthful events. New scheduling writers must follow the shared-lock and source-version contract.

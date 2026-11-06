@@ -1,9 +1,15 @@
 import './env';
 import pg, { type PoolClient } from 'pg';
+import {attachDatabasePool} from '@vercel/functions';
+import {runtimeDatabaseConfig} from './hosting';
 export const adminUrl = process.env.ADMIN_DATABASE_URL ?? 'postgres://postgres:local-demo-admin@127.0.0.1:55432/recovery';
 export const databaseUrl = process.env.DATABASE_URL ?? 'postgres://recovery_app:local-demo-app@127.0.0.1:55432/recovery';
 const globalDb = globalThis as unknown as { recoveryPool?: pg.Pool };
-export const pool = globalDb.recoveryPool ?? new pg.Pool({ connectionString: databaseUrl, max: 8 });
+export const pool = globalDb.recoveryPool ?? new pg.Pool(runtimeDatabaseConfig());
+if(!globalDb.recoveryPool) {
+  if(process.env.VERCEL)attachDatabasePool(pool);
+  pool.on('error',()=>console.error('Idle database connection failed; a new connection will be used.'));
+}
 globalDb.recoveryPool = pool;
 
 // Small single-clinic prototype: serialize commands AND refreshes (which expire offers)
