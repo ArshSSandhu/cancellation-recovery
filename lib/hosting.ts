@@ -9,11 +9,11 @@ export function demoConfig(env:Env=process.env) {
     requireConfig(!env.DEMO_MODE||env.DEMO_MODE==='local','Hosted demo mode requires Vercel.');
     return {hosted:false,origin:null,instance:'local',cookieName:'recovery_session',secure:false} as const;
   }
-  requireConfig(env.DEMO_MODE==='protected-fictional','This passwordless fictional demo is disabled on Vercel. Hosted access has not been configured.');
+  requireConfig(['protected-fictional','public-fictional'].includes(env.DEMO_MODE??''),'This passwordless fictional demo is disabled on Vercel. Hosted access has not been configured.');
   // This records an operator-verified platform policy. It is NOT itself a gate:
   // Vercel Authentication / All Deployments must actually be enabled and checked
   // with an unauthenticated request BEFORE this configuration is activated.
-  requireConfig(env.REVIEWER_ACCESS==='vercel-auth-all-deployments','Reviewer access is not configured.');
+  requireConfig(env.REVIEWER_ACCESS===(env.DEMO_MODE==='public-fictional'?'shared-public-fictional':'vercel-auth-all-deployments'),'Reviewer access is not configured.');
   const value=env.APP_ORIGIN??'';let origin:URL;
   try{origin=new URL(value);}catch{throw new WorkflowError('The hosted application origin is not configured.',503);}
   requireConfig(origin.protocol==='https:'&&origin.origin===value&&!origin.username&&!origin.password&&!origin.port,'The hosted application origin must be one exact HTTPS origin.');

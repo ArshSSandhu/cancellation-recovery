@@ -166,9 +166,10 @@ export default function Dashboard(){
   const staff=state?.actor.role==='staff';
   return <>
     <a className="skip-link" href="#main">Skip to appointments</a>
-    <div className="demo-strip">FICTIONAL DATA ONLY <span>Fictional demo · no real messages are sent</span></div>
+    <div className="demo-strip">FICTIONAL DATA ONLY <span>Shared fictional demo · no real messages are sent</span></div>
     <header><a href="/" className="brand"><span className="brand-icon">↗</span> earlier<span className="brand-sub">Clinic scheduling</span></a><div className="identity"><label htmlFor="identity">Demo identity</label><select id="identity" value={identity} onChange={e=>setIdentity(e.target.value)}>{identities.map(([id,name])=><option value={id} key={id}>{name}</option>)}</select><button className="secondary" disabled={busy} onClick={()=>void login()}>Sign in / switch</button></div></header>
     <main id="main" tabIndex={-1}>
+      <p className="notice"><strong>Everyone shares these fictional records.</strong> Visitors can switch identities and change each other’s walkthrough. The identity selector is impersonation, not real authentication. Refresh before acting. Do not enter personal or patient information, including in reasons.</p>
       <div className="page-heading"><div><p className="eyebrow">Cancellation recovery</p><h1>{!state?'A little sooner.':staff?'Make room for an earlier visit.':`Your next visit, ${state.actor.name.split(' ')[0]}.`}</h1><p className="lede">{!state?'Sign in with a fictional identity to explore the clinic and patient experiences.':staff?'Review openings, match waiting patients, and follow every booking change.':uncertain?'Booking status is unconfirmed. Refresh records before relying on these times.':'Your confirmed appointments and earlier-visit offers are listed below.'}</p></div>{state&&<button className="secondary" disabled={busy} onClick={()=>void refresh()}>Refresh records</button>}</div>
       <div className="context"><span>{state?<>Signed in as <strong>{state.actor.name}</strong> · {state.actor.role}</>:'Demo identities · passwordless impersonation'}</span><span>All times: Indianapolis · Eastern Time (EST/EDT)</span></div>
       <div ref={noticeRef} tabIndex={-1} className="update-focus"><Announcements notice={notice} busy={busy}/></div>

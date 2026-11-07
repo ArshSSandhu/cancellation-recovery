@@ -19,6 +19,10 @@ try {
     await client.query(readFileSync(new URL('../db/001_initial.sql', import.meta.url), 'utf8'));
     await client.query("INSERT INTO migrations VALUES ('001_initial')");
   }
+  if (!(await client.query("SELECT 1 FROM migrations WHERE name='002_public_demo'")).rowCount) {
+    await client.query(readFileSync(new URL('../db/002_public_demo.sql',import.meta.url),'utf8'));
+    await client.query("INSERT INTO migrations VALUES ('002_public_demo')");
+  }
   await client.query(`GRANT CONNECT ON DATABASE ${name} TO recovery_app`);
   await client.query('GRANT USAGE ON SCHEMA public TO recovery_app');
   await client.query('GRANT SELECT, INSERT, UPDATE, DELETE ON identities, sessions, clinicians, slots, appointments, waitlist, offers TO recovery_app');

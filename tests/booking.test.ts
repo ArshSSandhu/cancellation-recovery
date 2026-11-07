@@ -291,3 +291,26 @@ test('restricted hosted table grants permit the complete move and deny slot edit
     await admin.query('GRANT SELECT,INSERT,UPDATE,DELETE ON identities,sessions,clinicians,slots,appointments,waitlist,offers TO recovery_app');
   }
 });
+
+
+test('public budgets are atomic across connections, bounded and renew after their window',async()=>{
+  const {consumePublicBudget}=await import('../lib/request-limits');
+  await admin.query('TRUNCATE request_limits');
+  const results=await Promise.allSettled(Array.from({length:25},()=>consumePublicBudget('signin')));
+  assert.equal(results.filter(r=>r.status==='fulfilled').length,20);
+  for(const r of results.filter(r=>r.status==='rejected'))assert.equal(r.reason.status,429);
+  assert.equal((await pool.query("SELECT used FROM request_limits WHERE kind='signin'")).rows[0].used,20);
+  await admin.query("UPDATE request_limits SET started_at=clock_timestamp()-interval '61 seconds'");
+  await consumePublicBudget('signin');
+  assert.equal((await pool.query("SELECT used FROM request_limits WHERE kind='signin'")).rows[0].used,1);
+  await consumePublicBudget('state');await consumePublicBudget('action');
+  assert.equal((await pool.query('SELECT count(*)::int AS n FROM request_limits')).rows[0].n,3);
+});
+test('expired-session cleanup retains live sessions, appointments and audit',async()=>{
+  const {cleanupExpiredSessions}=await import('../lib/request-limits');
+  const before=(await admin.query("SELECT (SELECT jsonb_agg(to_jsonb(a) ORDER BY id) FROM appointments a) AS bookings,(SELECT jsonb_agg(to_jsonb(a) ORDER BY id) FROM audit a) AS audit")).rows[0];
+  await pool.query("INSERT INTO sessions VALUES('expired-test','maya',clock_timestamp()-interval '1 second'),('live-test','staff',clock_timestamp()+interval '1 hour')");
+  await cleanupExpiredSessions();
+  assert.deepEqual((await pool.query('SELECT token_hash FROM sessions')).rows,[{token_hash:'live-test'}]);
+  assert.deepEqual((await admin.query("SELECT (SELECT jsonb_agg(to_jsonb(a) ORDER BY id) FROM appointments a) AS bookings,(SELECT jsonb_agg(to_jsonb(a) ORDER BY id) FROM audit a) AS audit")).rows[0],before);
+});

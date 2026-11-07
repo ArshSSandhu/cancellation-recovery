@@ -32,3 +32,11 @@ test('runtime hosted database uses a small pooled TLS connection with certificat
   ]){const bad=new URL(database);change(bad);assert.throws(()=>runtimeDatabaseConfig({...hosted,DATABASE_URL:bad.toString()}));}
   assert.throws(()=>runtimeDatabaseConfig(hosted),/not configured/);
 });
+
+test('public mode requires explicit shared-public acknowledgement and retains secure origin rules',()=>{
+ const env={...hosted,DEMO_MODE:'public-fictional',REVIEWER_ACCESS:'shared-public-fictional'};
+ assert.throws(()=>demoConfig({...env,REVIEWER_ACCESS:hosted.REVIEWER_ACCESS}),/Reviewer access/);
+ assert.equal(demoConfig(env).secure,true);
+ assert.doesNotThrow(()=>checkDemoOrigin(new Headers({host:'assigned-reviewer.vercel.app',origin:env.APP_ORIGIN}),env));
+ assert.throws(()=>checkDemoOrigin(new Headers({host:'assigned-reviewer.vercel.app',origin:'https://elsewhere.example'}),env),/origin/);
+});

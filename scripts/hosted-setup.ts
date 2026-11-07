@@ -54,6 +54,10 @@ try {
       await c.query("INSERT INTO migrations VALUES ('001_initial')");
       await insertFictionalFixtures(c);
     }else if(!(await c.query("SELECT 1 FROM migrations WHERE name='001_initial'")).rowCount)throw new Error('Unexpected migration state; initialization stopped.');
+    if(!(await c.query("SELECT 1 FROM migrations WHERE name='002_public_demo'")).rowCount) {
+      await c.query(readFileSync(new URL('../db/002_public_demo.sql',import.meta.url),'utf8'));
+      await c.query("INSERT INTO migrations VALUES ('002_public_demo')");
+    }
     await c.query('GRANT CONNECT ON DATABASE recovery_demo TO recovery_app');
     await c.query(readFileSync(new URL('../db/runtime_role_grants.sql',import.meta.url),'utf8'));
     await c.query('COMMIT');

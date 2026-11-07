@@ -1,3 +1,17 @@
+# Shared public fictional demo — current configuration
+
+The owner explicitly approved sharing the existing fictional dataset publicly. The canonical URL is https://cancellation-recovery.vercel.app/; no Vercel account is required. Visitors can select any fictional identity, inspect fictional audit entries and change shared bookings. This is impersonation, not real authentication. Enter no personal information, including in free-text reasons. Other visitors can interrupt a walkthrough; refresh before acting. The saved dataset is not reset on deployment.
+
+Production uses `DEMO_MODE=public-fictional` and `REVIEWER_ACCESS=shared-public-fictional`, with the existing exact `APP_ORIGIN`, Secure/HttpOnly/SameSite cookies and restricted pooled TLS database role. `lib/hosting.ts` still rejects absent/unacknowledged modes, other hosts and origins. Vercel Standard Protection leaves production domains public while retaining protection for generated deployment URLs and previews. Only this project's protection setting changes; no automation bypass or paid service is created. Use the canonical URL; the app refuses other API hosts.
+
+`db/002_public_demo.sql` is additive: a bounded three-row request-budget table plus an expiry index for sessions. The initializer and local migration script apply it once without reseeding. `lib/request-limits.ts` enforces atomic shared 60-second windows across instances: 20 sign-ins, 60 actions, 120 state reads. Rejected requests return HTTP 429 with Retry-After 60 before booking work. Windows reset lazily; no IP addresses are stored. Global budgets are basic protection, not fair per-visitor allocation or DDoS protection: one visitor can temporarily exhaust them. Refreshes can still block scheduling briefly through the existing database lock. No paid limiter service or visitor workspaces are used.
+
+Successful identity validation during sign-in triggers deletion of expired sessions only. Live sessions, offers, bookings and audit history are retained. Cleanup is opportunistic, so expired rows can remain until the next sign-in. Reset and fault tools remain workstation/test-only; no new HTTP endpoint was added. Normal operation uses no owner credentials. Local databases are not migrated or reset as part of hosting this change.
+
+Public-release checks: 44 isolated database/UI/configuration tests, TypeScript and a production build passed. Added checks cover concurrent budget enforcement/window renewal and cleanup preserving live sessions, bookings and audit. Actual signed-out production checks are recorded in the task report. The older owner-only release record below is historical and does not describe current public access policy.
+
+---
+
 # Protected fictional deployment
 
 This is a personal, non-commercial demonstration, **not a system for real patient information**. The public source is https://github.com/ArshSSandhu/cancellation-recovery. The assigned reviewer URL is https://cancellation-recovery.vercel.app/.

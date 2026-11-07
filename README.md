@@ -10,7 +10,7 @@ A fictional psychiatric clinic demo: when a patient cancels, staff can offer the
 4. Switch to **Maya Chen · Patient**. Compare the earlier visit with the still-booked original, then accept or keep the existing appointment (decline).
 5. Refresh both views to see the move. Staff can inspect retained appointment history and audit entries, or withdraw a pending offer with a reason.
 
-The **demo identity switcher is passwordless impersonation, not real authentication**. Anyone granted access to an instance can choose staff or any fictional patient. Server sessions still enforce staff permissions and patient ownership for each request. Tabs share the identity cookie; use separate browser profiles for independent identities. The hosted fictional demo requires Vercel Authentication on **All Deployments**, currently restricted to its owner. This outer reviewer gate is separate from the fictional identities.
+The **demo identity switcher is passwordless impersonation, not real authentication**. Anyone granted access to an instance can choose staff or any fictional patient. Server sessions still enforce staff permissions and patient ownership for each request. Tabs share the identity cookie; use separate browser profiles for independent identities. The hosted public demo deliberately shares all fictional records between visitors. No Vercel account is needed at the canonical URL. Anyone can impersonate every fictional identity; never enter personal information.
 
 ## Architecture and booking correctness
 
@@ -45,7 +45,7 @@ RESET_FICTIONAL_DATA=1 ./run.sh db:seed
 
 Open **http://127.0.0.1:3000/**. On subsequent runs, start only `db:start` and `dev` (or `start` for a saved production build). Ctrl-C stops services and preserves data. Do not reseed to restart.
 
-`.env.local` is loaded by both Next and standalone scripts; explicit environment variables take precedence. Keep it out of version control. Local public passwords in `.env.example` are fictional development defaults and must never be reused on hosting. Setup creates `recovery` and the restricted role if needed and applies versioned SQL migrations; running setup twice retains data.
+`.env.local` is loaded by both Next and standalone scripts; explicit environment variables take precedence. Keep it out of version control. Local public passwords in `.env.example` are fictional development defaults and must never be reused on hosting. Setup creates `recovery` and the restricted role if needed and applies versioned SQL migrations (001 and 002); running setup twice retains data.
 
 For a separate copy while this app is running, set `LOCAL_POSTGRES_PORT=55433` and change **all four URL ports** in that copy’s `.env.local` to 55433. Start its app with `./run.sh dev --port 3200` or `./run.sh start --port 3200`. A copied directory alone does not isolate database URLs.
 
@@ -83,9 +83,9 @@ Source, lockfile, migrations, fictional seed code, tests and setup notes are inc
 
 ## Hosted fictional demo
 
-The owner-only reviewer instance is [cancellation-recovery.vercel.app](https://cancellation-recovery.vercel.app/). Sign in to Vercel using the owner account, then use the fictional identity selector. Anyone admitted to this instance can impersonate all its fictional identities and change its records. Do not distribute bypass/share links or admit independent reviewers to this same dataset.
+The shared public fictional instance is [cancellation-recovery.vercel.app](https://cancellation-recovery.vercel.app/). Open the link and use the fictional identity selector. Everyone shares the records and can affect other walkthroughs. No account, workspace isolation or real authentication is provided. Refresh before acting.
 
-Hosting uses the personal Vercel Hobby project and Neon Free project, pooled verified-TLS `recovery_app` credentials for the separate `recovery_demo` database, and the production environment settings documented in [DEPLOYMENT.md](DEPLOYMENT.md). The original local database remains independent. No owner credentials, reset command, migration or fault harness runs in the deployed application. Previews receive no production credentials and are not configured for demo use.
+Hosting uses the personal Vercel Hobby project and Neon Free project, pooled verified-TLS `recovery_app` credentials for the separate `recovery_demo` database, and the production environment settings documented in [DEPLOYMENT.md](DEPLOYMENT.md). The original local database remains independent. No owner credentials, reset command, migration or fault harness runs in the deployed application. Previews receive no production credentials and remain protected.
 
 `neon.ts` declares Postgres only; Neon Auth and other services are disabled. `lib/hosting.ts` validates the hosted mode, exact canonical HTTPS origin, secure session configuration and restricted pooled connection. `db/runtime_role_grants.sql` gives the hosted role narrower grants than the local developer role, including append/read-only audit access. `scripts/hosted-setup.ts` is an explicit workstation-only initialization of an empty named hosted database; rerunning it does not reset fixtures. Provider commands can pull owner credentials into local env files: follow the separation instructions before using them.
 

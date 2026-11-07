@@ -10,3 +10,4 @@ GRANT SELECT,INSERT,DELETE ON sessions TO recovery_app;
 GRANT SELECT,INSERT,UPDATE ON appointments,waitlist,offers TO recovery_app;
 GRANT SELECT,INSERT ON audit TO recovery_app;
 GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA public TO recovery_app;
+GRANT SELECT,INSERT,UPDATE ON request_limits TO recovery_app;
